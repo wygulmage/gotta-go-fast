@@ -21,8 +21,9 @@ import           UI                     (run)
 
 data Config =
   Config
-    { fg_empty          :: Maybe Word8
-    , fg_error          :: Maybe Word8
+    { fg_empty          :: Word8 -- Maybe Word8
+    , fg_error          :: Word8 -- Maybe Word8
+    , fg_correct        :: Word8
     , files             :: [FilePath]
     , height            :: Int
     , max_paragraph_len :: Int
@@ -56,9 +57,12 @@ config :: Config
 config =
   Config
     { fg_empty =
-        def &= typ "COLOUR" &=
+        -- def &= typ "COLOUR" &=
+        8 &= typ "COLOUR" &=
         help "The ANSI colour code for empty (not yet typed) text"
-    , fg_error = def &= typ "COLOUR" &= help "The ANSI colour code for errors"
+    -- , fg_error = def &= typ "COLOUR" &= help "The ANSI colour code for errors"
+    , fg_error = 1 &= typ "COLOUR" &= help "The ANSI colour code for errors"
+    , fg_correct = 1 &= typ "COLOUR" &= help "The ANSI colour code for correctly typed text"
     , height =
         20 &= typ "LINES" &=
         help "The maximum number of lines to sample (default: 20)"
@@ -87,6 +91,7 @@ config =
 wrap :: Int -> String -> String
 wrap width = T.unpack . wrapText wrapSettings width . T.pack
 
+wrapSettings :: WrapSettings
 wrapSettings = WrapSettings {preserveIndentation = True, breakLongWords = True}
 
 -- wordWeights.txt is taken from
@@ -124,6 +129,7 @@ nonsense c = do
   words <- go (nonsense_len c) Nothing
   return $ (wrap (width c) . unwords $ words) ++ "\n"
   where
+    go :: Int -> Maybe String -> IO [String]
     go n lastWord
       | n <= 0 = return []
       | otherwise = do

@@ -12,7 +12,6 @@ import           Brick                  (App (..), AttrName, BrickEvent (..),
 import           Brick.Widgets.Center   (center)
 import           Control.Monad.IO.Class (liftIO)
 import           Data.Char              (isSpace)
-import           Data.Maybe             (fromMaybe)
 import           Data.Time              (getCurrentTime)
 import           Data.Word              (Word8)
 import           Graphics.Vty           (Attr, Color (..), Event (..), Key (..),
@@ -27,11 +26,14 @@ emptyAttrName = attrName "empty"
 errorAttrName :: AttrName
 errorAttrName = attrName "error"
 
+correctAttrName :: AttrName
+correctAttrName = attrName "correct"
+
 resultAttrName :: AttrName
 resultAttrName = attrName "result"
 
 drawCharacter :: Character -> Widget ()
-drawCharacter (Hit c)    = str [c]
+drawCharacter (Hit c)    = withAttr correctAttrName $ str [c]
 drawCharacter (Miss ' ') = withAttr errorAttrName $ str ['_']
 drawCharacter (Miss c)   = withAttr errorAttrName $ str [c]
 drawCharacter (Empty c)  = withAttr emptyAttrName $ str [c]
@@ -117,12 +119,12 @@ app emptyAttr errorAttr resultAttr =
           ]
     }
 
-run :: Maybe Word8 -> Maybe Word8 -> String -> IO Bool
+run :: Word8 -> Word8 -> String -> IO Bool
 run fgEmptyCode fgErrorCode t = do
   s <- defaultMain (app emptyAttr errorAttr resultAttr) $ initialState t
   return $ loop s
   where
-    emptyAttr = fg . ISOColor $ fromMaybe 8 fgEmptyCode
-    errorAttr = flip withStyle bold . fg . ISOColor $ fromMaybe 1 fgErrorCode
+    emptyAttr = fg $ ISOColor fgEmptyCode
+    errorAttr = flip withStyle bold . fg $ ISOColor fgErrorCode
     -- abusing the fgErrorCode to use as a highlight colour for the results here
-    resultAttr = fg . ISOColor $ fromMaybe 1 fgErrorCode
+    resultAttr = fg $ ISOColor fgErrorCode

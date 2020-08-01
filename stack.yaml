@@ -7,4 +7,5 @@ extra-package-dbs: []
 packages:
 - .
 extra-deps:
-resolver: lts-16.6
+# resolver: lts-16.6
+resolver: nightly-2020-08-01
